@@ -4,7 +4,7 @@ ellipitic curve, its a equation like this: y^2 = x^3 + ax +b, and its shape just
 ![image](https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/cf4158f0-a3d0-45e2-9423-20d4f41af422)
 
 For bitcoin, its elliptic curve has a name: secp256k1 and its equation is y^2 = x ^ 3 + 7, We don't care too much about the elliptic curve function, we care about
-certain set of points on the curve,let's have some code for points on the curve. First we add a new file named point.go under the folder of elliptic-curve, and add
+certain set of points on the curve,let's have some code for points on the curve. First we add a new file named point.go under the folder of elliptic-curve, and add 
 the following code:
 ```g
 package elliptic_curve
