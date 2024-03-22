@@ -142,6 +142,7 @@ The definition of point addition here have following properties:
 2, associativity, that is (A+B) + C = A + (B+C)
 The following image shows (A+B)+C:
 <img width="645" alt="截屏2024-03-22 15 44 07" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/c6104f2b-7b03-4385-8f8f-580f3bd7b104">
+
 The following image shows A + (B+C):
 <img width="737" alt="截屏2024-03-22 15 47 24" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/a77d791b-e089-4526-bb55-fbb7112a4a70">
 
