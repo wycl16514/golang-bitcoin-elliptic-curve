@@ -125,5 +125,34 @@ following result:
 point(-1, -1) is on curve y^2=x^3+5x+7
 panic: point:(-1, -2) is not on the curve with a: 5, b:7
 ```
-we can see point (-1,-1) is on the curve but point (-1, -2) is not on the curve, now we come to practise, please check points (2,4),  (18,77), (5,7) on the curve 
-or not.
+we can see point (-1,-1) is on the curve but point (-1, -2) is not on the curve, now we come to practise, please check points (2,4),  (18,77), (5,7) on the curve or not.
+
+Now we come to the key point, that is given to points A(x1,y1), B(x2,y2) on a given elliptic curve, how we can 
+define the addition of them. We use a line to connect the two points, and extend the line, if the extended line can
+interset with the curve on a third point C like following:
+
+<img width="651" alt="截屏2024-03-22 15 33 45" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/3926ee42-bdc9-49fb-80af-559552515206">
+
+Then the point that is symetric with c over x-axis is defined as A+B. The same apply to A+C, when we use a line to 
+connect A and C, the third point that intersect with the curve is B, then we find the point that is symetric to B over
+x-axis would be the result of A+C, the same goes to B+C.
+
+The definition of point addition here have following properties:
+1, commutativity, that is A+B = B+A, this is obvious.
+2, associativity, that is (A+B) + C = A + (B+C)
+The following image shows (A+B)+C:
+<img width="645" alt="截屏2024-03-22 15 44 07" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/c6104f2b-7b03-4385-8f8f-580f3bd7b104">
+The following image shows A + (B+C):
+<img width="737" alt="截屏2024-03-22 15 47 24" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/a77d791b-e089-4526-bb55-fbb7112a4a70">
+
+There is a special case that A and B are on the same vertical line, and no matter how we extend this line, there is 
+impossible a third piont that can interset with the curve, but we can give this no existent third point a name called
+identitiy marked as I, and define that any point P on the curve, if it add with the identitity point the result is 
+itself, that is P + I = P:
+
+<img width="436" alt="截屏2024-03-22 15 52 59" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/ec74254f-9f33-4319-b1b2-151ce7c45109">
+
+
+How about A and B are the same point on the curve? We defer this case to later time and now let's add some code for 
+point addition.
+
