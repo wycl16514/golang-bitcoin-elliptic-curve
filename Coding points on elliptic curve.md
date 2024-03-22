@@ -207,6 +207,21 @@ func (p *Point) Add(other *Point) *Point {
 		return p
 	}
 
+/*
+		another simple case, two points on the same vertical line, that is
+		they have the same x but inverse y, the addition of them should be
+		identity
+	*/
+	if p.x.Cmp(other.x) == 0 &&
+		OpOnBig(p.y, other.y, ADD).Cmp(big.NewInt(int64(0))) == 0 {
+		return &Point{
+			x: nil,
+			y: nil,
+			a: p.a,
+			b: p.b,
+		}
+	}
+
 	//TODO
 	return nil
 }
@@ -227,6 +242,11 @@ func main() {
 
 	res := p.Add(identity)
 	fmt.Printf("result of point p add to identity is: %s\n", res)
+
+        p2 := ecc.NewEllipticPoint(big.NewInt(int64(-1)), big.NewInt(int64(1)),
+		big.NewInt(int64(5)), big.NewInt(int64(7)))
+	res = p.Add(p2)
+	fmt.Printf("result of adding points on vertical line: %s", res)
 }
 ```
 running the code above will have the following result:
@@ -234,6 +254,8 @@ running the code above will have the following result:
 p is :(x: -1, y: -1, a: 5, b: 7)
 
 result of point p add to identity is: (x: -1, y: -1, a: 5, b: 7)
+
+result of adding points on vertical line: (x: <nil>, y: <nil>, a: 5, b: 7)
 ```
 If no point is identity, then we need some mathmatical derivation to compute the addition.
 
