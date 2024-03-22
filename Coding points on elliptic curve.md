@@ -138,8 +138,11 @@ connect A and C, the third point that intersect with the curve is B, then we fin
 x-axis would be the result of A+C, the same goes to B+C.
 
 The definition of point addition here have following properties:
+
 1, commutativity, that is A+B = B+A, this is obvious.
+
 2, associativity, that is (A+B) + C = A + (B+C)
+
 The following image shows (A+B)+C:
 <img width="645" alt="截屏2024-03-22 15 44 07" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/c6104f2b-7b03-4385-8f8f-580f3bd7b104">
 
@@ -155,5 +158,82 @@ itself, that is P + I = P:
 
 
 How about A and B are the same point on the curve? We defer this case to later time and now let's add some code for 
-point addition.
+point addition. First we handle the simple case that is at least one point in the addition is identity point, and 
+identity point is with its x and y set to nil, we have code like following:
+```g
+func NewEllipticPoint(x *big.Int, y *big.Int, a *big.Int, b *big.Int) *Point {
+       if x == nil && y == nil {
+		return &Point{
+			a: a,
+			b: b,
+			x: x,
+			y: y,
+		}
+	}
+
+	//first check (x,y) on the curve defined by a, b
+	left := OpOnBig(y, big.NewInt(int64(2)), EXP)
+	x3 := OpOnBig(x, big.NewInt(int64(3)), EXP)
+	ax := OpOnBig(a, x, MUL)
+	right := OpOnBig(OpOnBig(x3, ax, ADD), b, ADD)
+	//if x and y are nil, then its identity point and
+	//we don't need to check it on curve
+	if left.Cmp(right) != 0 {
+		err := fmt.Sprintf("point:(%v, %v) is not on the curve with a: %v, b:%v\n", x, y, a, b)
+		panic(err)
+	}
+
+	return &Point{
+		a: a,
+		b: b,
+		x: x,
+		y: y,
+	}
+}
+
+func (p *Point) Add(other *Point) *Point {
+	//check points are on the same curve
+	if p.a.Cmp(other.a) != 0 || p.b.Cmp(other.b) != 0 {
+		panic("given two points are not on the same curve")
+	}
+
+	if p.x == nil {
+		//current point is identity point
+		return other
+	}
+
+	if other.x == nil {
+		//the other point is identity
+		return p
+	}
+
+	//TODO
+	return nil
+}
+
+func (p *Point) String() string {
+	return fmt.Sprintf("x: %s, y: %s, a: %s, b: %s\n", p.x.String(),
+		p.y.String(), p.a.String(), p.b.String())
+}
+```
+Let's test the code by adding one point with an identity point and the result should be the point itself:
+```g
+func main() {
+	p := ecc.NewEllipticPoint(big.NewInt(int64(-1)), big.NewInt(int64(-1)),
+		big.NewInt(int64(5)), big.NewInt(int64(7)))
+	identity := ecc.NewEllipticPoint(nil, nil,
+		big.NewInt(int64(5)), big.NewInt(int64(7)))
+	fmt.Printf("p is :%s\n", p)
+
+	res := p.Add(identity)
+	fmt.Printf("result of point p add to identity is: %s\n", res)
+}
+```
+running the code above will have the following result:
+```g
+p is :(x: -1, y: -1, a: 5, b: 7)
+
+result of point p add to identity is: (x: -1, y: -1, a: 5, b: 7)
+```
+If no point is identity, then we need some mathmatical derivation to compute the addition.
 
