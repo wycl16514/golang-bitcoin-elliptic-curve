@@ -1,4 +1,4 @@
-Bitcoin rely heavily on a match object called elliptic curve, without this math structure bitcoin will like a castle on beach, it will collapse in any time.What is 
+<img width="640" alt="image" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/6594cc23-53e2-4314-9ca2-c88578374976">Bitcoin rely heavily on a match object called elliptic curve, without this math structure bitcoin will like a castle on beach, it will collapse in any time.What is 
 ellipitic curve, its a equation like this: y^2 = x^3 + ax +b, and its shape just like following:
 
 ![image](https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/cf4158f0-a3d0-45e2-9423-20d4f41af422)
@@ -257,5 +257,73 @@ result of point p add to identity is: (x: -1, y: -1, a: 5, b: 7)
 
 result of adding points on vertical line: (x: <nil>, y: <nil>, a: 5, b: 7)
 ```
-If no point is identity, then we need some mathmatical derivation to compute the addition.
+If no point is identity, then we need some mathmatical derivation to compute the addition.Given A(x1,y1), B(x2,y2),
+we need to know C(x3,y3), first we find the function for line AB.
+
+The slope of line AB is s=(y2-y1)/(x2-x1), and function of line AB is y=s(x-x1)+y1
+
+replace y in y^2=x^3+ax+b by y=s(x-x1)+y1 we have: [s(x-x1)+y1]^2=x^3+ax+b, extend the left side and move it to right 
+side we get:
+<img width="640" alt="image" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/971f7bb2-6ce5-4cd0-8a3a-4cd6a6a489d8">
+
+we know certainly that x1, x2, x3 are solution for eqution above and below:
+
+<img width="642" alt="截屏2024-03-22 22 31 56" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/8f369b26-4b5b-4ca3-862e-2ee772940845">
+
+By Vieta's foluma, coefficient for term with the same order should equal, then we have:
+
+s^2 = x1+x2+x3 => x3 = s^2 - x1 - x2
+
+This give us the value of x3, we can put it to the line function and get y3:
+
+y=s(x-x1)+y1=> y3=s(x3-x1)+y1
+
+Now we have C, and remember we need to reflect it over x-axis, and we get A+B is (-s^2-x1-x2, -[s(x3-x1)+y1])
+
+Let's have code for this:
+```g
+func (p *Point) Add(other *Point) *Point {
+ ...
+ //find slope of line AB
+	//x1 = p.x, y1 = p.y, x2 = other.x, y2 = other.y
+	numerator := OpOnBig(other.y, p.y, SUB)
+	denominator := OpOnBig(other.x, p.x, SUB)
+	//s = (y2-y2)/(x2-x1)
+	slope := OpOnBig(numerator, denominator, DIV)
+
+	//-s^2
+	slopeSqrt := OpOnBig(slope, big.NewInt(int64(2)), EXP)
+	x3 := OpOnBig(OpOnBig(slopeSqrt, p.x, SUB), other.x, SUB)
+	//x3-x1
+	x3Minusx1 := OpOnBig(x3, p.x, SUB)
+	//y3=s(x3-x1)+y1
+	y3 := OpOnBig(OpOnBig(slope, x3Minusx1, MUL), p.y, ADD)
+	//-y3
+	minusY3 := OpOnBig(y3, big.NewInt(int64(-1)), MUL)
+
+	return &Point{
+		x: x3,
+		y: minusY3,
+		a: p.a,
+		b: p.b,
+	}
+}
+```
+Let's test the code above:
+```go
+func main() {
+	//C = A(2,5) + B(-1, -1)
+	A := ecc.NewEllipticPoint(big.NewInt(int64(2)), big.NewInt(int64(5)),
+		big.NewInt(int64(5)), big.NewInt(int64(7)))
+	B := ecc.NewEllipticPoint(big.NewInt(int64(-1)), big.NewInt(int64(-1)),
+		big.NewInt(int64(5)), big.NewInt(int64(7)))
+	C := A.Add(B)
+	fmt.Printf("A(2,5) + B(-1,-1) = %s\n", C)
+}
+```
+The running result for the above code is:
+```g
+A(2,5) + B(-1,-1) = (x: 3, y: -7, a: 5, b: 7)
+```
+Please use a pen and paper to check the result if you are hesitate, I can assure you the result is correct.
 
