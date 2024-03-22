@@ -325,5 +325,48 @@ The running result for the above code is:
 ```g
 A(2,5) + B(-1,-1) = (x: 3, y: -7, a: 5, b: 7)
 ```
-Please use a pen and paper to check the result if you are hesitate, I can assure you the result is correct.
+Please use a pen and paper to check the result if you are hesitate, I can assure you the result is correct. There still one special case we need to handle,that 
+is when A=B, in this case, the line AB turns into a tangent line of the elliptic curve :
 
+<img width="653" alt="截屏2024-03-23 03 44 04" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/8666bc6b-174e-4520-973f-614c248bedce">
+
+This time we can't get the slope for the line easily, we need the help from calculus. To find the slope of tangent line on a curve, we need to compute the 
+Derivative at the point of the curve, for the function of the curve y^2 = x^3 + ax+b, we take drivative for point x on both side and we get:
+d(y^2)/dx = d(x^3+ax+b)/dx -> 2y * dy/dx = 3x^2 + a -> dy/dx = (3x^2+a)/2y, therefore we only need to change the computation of slope and other steps remain 
+the same, here is the code:
+```g
+func (p *Point) Add(other *Point) *Point {
+...
+//find slope of line AB
+	//x1 = p.x, y1 = p.y, x2 = other.x, y2 = other.y
+	var numerator *big.Int
+	var denominator *big.Int
+	if p.x.Cmp(other.x) == 0 && p.y.Cmp(other.y) == 0 {
+		//two points are the same and compute the slope of tangent line
+		//numerator is (3x^2+a)
+		xSqrt := OpOnBig(p.x, big.NewInt(int64(2)), EXP)
+		threeXSqrt := OpOnBig(xSqrt, big.NewInt(int64(3)), MUL)
+		numerator = OpOnBig(threeXSqrt, p.a, ADD)
+		//demoninator is 2y
+		denominator = OpOnBig(p.y, big.NewInt(int64(2)), MUL)
+	} else {
+		//s = (y2-y2)/(x2-x1)
+		numerator = OpOnBig(other.y, p.y, SUB)
+		denominator = OpOnBig(other.x, p.x, SUB)
+	}
+...
+}
+```
+Let's have a test for this case:
+```g
+func main() {
+...
+        //B=(-1,-1) C=B+B
+	C = B.Add(B)
+	fmt.Printf("B(-1,-1) + B(-1,-1) = %s\n", C)
+}
+```
+The result for the above code is :
+```g
+B(-1,-1) + B(-1,-1) = (x: 18, y: 77, a: 5, b: 7)
+```
