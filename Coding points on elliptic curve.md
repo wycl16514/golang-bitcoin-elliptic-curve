@@ -1,4 +1,6 @@
-<img width="640" alt="image" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/6594cc23-53e2-4314-9ca2-c88578374976">Bitcoin rely heavily on a match object called elliptic curve, without this math structure bitcoin will like a castle on beach, it will collapse in any time.What is 
+<img width="640" alt="image" src="https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/6594cc23-53e2-4314-9ca2-c88578374976">
+
+Bitcoin rely heavily on a match object called elliptic curve, without this math structure bitcoin will like a castle on beach, it will collapse in any time.What is 
 ellipitic curve, its a equation like this: y^2 = x^3 + ax +b, and its shape just like following:
 
 ![image](https://github.com/wycl16514/golang-bitcoin-elliptic-curve/assets/7506958/cf4158f0-a3d0-45e2-9423-20d4f41af422)
@@ -6,7 +8,7 @@ ellipitic curve, its a equation like this: y^2 = x^3 + ax +b, and its shape just
 For bitcoin, its elliptic curve has a name: secp256k1 and its equation is y^2 = x ^ 3 + 7, We don't care too much about the elliptic curve function, we care about
 certain set of points on the curve,let's have some code for points on the curve. First we add a new file named point.go under the folder of elliptic-curve, and add 
 the following code:
-```g
+```go
 package elliptic_curve
 
 import (
@@ -102,7 +104,7 @@ In the code, we init the elliptic curve point with coefficients of a and b, and 
 the equation, if they are not equal we throw out an panic. When we check two points are equal or not, we need to compare its four components which are a,b,x,y.
 
 Let's try to new two elliptic points from main function:
-```g
+```go
 func main() {
 	/*
 		check pint(-1, -1) on y^2 = x^3 + 5x + 7 or not
@@ -121,7 +123,7 @@ func main() {
 We construct the point struct by using its creator function NewEllipticPoint, the first two params are the coordinate of the point(x,y), if the point is not on the
 curve, there would be a panic, otherwise we can print out the message following the creator function, let's run the code for a check by go run main.go and get the
 following result:
-```g
+```go
 point(-1, -1) is on curve y^2=x^3+5x+7
 panic: point:(-1, -2) is not on the curve with a: 5, b:7
 ```
@@ -160,7 +162,7 @@ itself, that is P + I = P:
 How about A and B are the same point on the curve? We defer this case to later time and now let's add some code for 
 point addition. First we handle the simple case that is at least one point in the addition is identity point, and 
 identity point is with its x and y set to nil, we have code like following:
-```g
+```go
 func NewEllipticPoint(x *big.Int, y *big.Int, a *big.Int, b *big.Int) *Point {
        if x == nil && y == nil {
 		return &Point{
@@ -231,8 +233,10 @@ func (p *Point) String() string {
 		p.y.String(), p.a.String(), p.b.String())
 }
 ```
+
 Let's test the code by adding one point with an identity point and the result should be the point itself:
-```g
+
+```go
 func main() {
 	p := ecc.NewEllipticPoint(big.NewInt(int64(-1)), big.NewInt(int64(-1)),
 		big.NewInt(int64(5)), big.NewInt(int64(7)))
@@ -249,8 +253,10 @@ func main() {
 	fmt.Printf("result of adding points on vertical line: %s", res)
 }
 ```
+
 running the code above will have the following result:
-```g
+
+```go
 p is :(x: -1, y: -1, a: 5, b: 7)
 
 result of point p add to identity is: (x: -1, y: -1, a: 5, b: 7)
@@ -281,7 +287,7 @@ y=s(x-x1)+y1=> y3=s(x3-x1)+y1
 Now we have C, and remember we need to reflect it over x-axis, and we get A+B is (-s^2-x1-x2, -[s(x3-x1)+y1])
 
 Let's have code for this:
-```g
+```go
 func (p *Point) Add(other *Point) *Point {
  ...
  //find slope of line AB
@@ -334,7 +340,7 @@ This time we can't get the slope for the line easily, we need the help from calc
 Derivative at the point of the curve, for the function of the curve y^2 = x^3 + ax+b, we take drivative for point x on both side and we get:
 d(y^2)/dx = d(x^3+ax+b)/dx -> 2y * dy/dx = 3x^2 + a -> dy/dx = (3x^2+a)/2y, therefore we only need to change the computation of slope and other steps remain 
 the same, here is the code:
-```g
+```go
 func (p *Point) Add(other *Point) *Point {
 ...
 //find slope of line AB
@@ -358,7 +364,7 @@ func (p *Point) Add(other *Point) *Point {
 }
 ```
 Let's have a test for this case:
-```g
+```go
 func main() {
 ...
         //B=(-1,-1) C=B+B
@@ -367,6 +373,6 @@ func main() {
 }
 ```
 The result for the above code is :
-```g
+```go
 B(-1,-1) + B(-1,-1) = (x: 18, y: 77, a: 5, b: 7)
 ```
